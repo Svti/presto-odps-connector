@@ -44,7 +44,7 @@ public class OdpsConnectorFactory implements ConnectorFactory {
 			// A plugin is not required to use Guice; it is just very convenient
 			Bootstrap app = new Bootstrap(new JsonModule(), new OdpsModule(catalogName, context.getTypeManager()));
 
-			Injector injector = app.strictConfig().doNotInitializeLogging()
+			Injector injector = app.doNotInitializeLogging()
 					.setRequiredConfigurationProperties(requiredConfig).initialize();
 
 			return injector.getInstance(OdpsConnector.class);
