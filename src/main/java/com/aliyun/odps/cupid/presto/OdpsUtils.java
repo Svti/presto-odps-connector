@@ -27,6 +27,7 @@ public class OdpsUtils {
 	public static OdpsColumnHandle buildOdpsColumn(Column col) {
 		boolean isStringType = false;
 		Type prestoType = null;
+		String comment = col.getComment();
 		switch (col.getTypeInfo().getOdpsType()) {
 		case TINYINT:
 			prestoType = TinyintType.TINYINT;
@@ -85,7 +86,7 @@ public class OdpsUtils {
 					"unsupported type: " + col.getTypeInfo().getTypeName());
 
 		}
-		return new OdpsColumnHandle(col.getName(), prestoType, isStringType);
+		return new OdpsColumnHandle(col.getName(), prestoType, comment, isStringType);
 	}
 
 	public static Column toOdpsColumn(OdpsColumnHandle columnHandle) {

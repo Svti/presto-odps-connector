@@ -148,7 +148,7 @@ public class OdpsClient {
 	private Map<ColumnHandle, NullableValue> getPartitionKVs(PartitionSpec odpsPartition) {
 		Map<ColumnHandle, NullableValue> kvs = new LinkedHashMap<>(2);
 		for (String key : odpsPartition.keys()) {
-			OdpsColumnHandle columnHandle = new OdpsColumnHandle(key, VarcharType.VARCHAR, true);
+			OdpsColumnHandle columnHandle = new OdpsColumnHandle(key, VarcharType.VARCHAR, "",true);
 			kvs.put(columnHandle, new NullableValue(VarcharType.VARCHAR, Slices.utf8Slice(odpsPartition.get(key))));
 		}
 		return kvs;

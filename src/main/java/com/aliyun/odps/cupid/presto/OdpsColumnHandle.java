@@ -26,14 +26,16 @@ import static java.util.Objects.requireNonNull;
 
 public final class OdpsColumnHandle implements ColumnHandle {
 	private final String name;
+	private final String comment;
 	private final Type type;
 	private final boolean isStringType;
 
 	@JsonCreator
 	public OdpsColumnHandle(@JsonProperty("name") String name, @JsonProperty("type") Type type,
-			@JsonProperty("isStringType") boolean isStringType) {
+			@JsonProperty("name") String comment, @JsonProperty("isStringType") boolean isStringType) {
 		this.name = requireNonNull(name, "name is null");
 		this.type = requireNonNull(type, "type is null");
+		this.comment = comment;
 		this.isStringType = isStringType;
 	}
 
@@ -45,6 +47,11 @@ public final class OdpsColumnHandle implements ColumnHandle {
 	@JsonProperty
 	public Type getType() {
 		return type;
+	}
+
+	@JsonProperty
+	public String getComment() {
+		return comment;
 	}
 
 	@JsonProperty

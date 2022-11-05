@@ -19,6 +19,7 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import com.google.common.collect.ImmutableList;
 
 import java.util.List;
+import java.util.Optional;
 
 import static com.google.common.base.Preconditions.checkArgument;
 import static com.google.common.base.Strings.isNullOrEmpty;
@@ -40,10 +41,19 @@ public class OdpsTable {
 
 		ImmutableList.Builder<ColumnMetadata> columnsMetadata = ImmutableList.builder();
 		for (OdpsColumnHandle column : this.dataColumns) {
-			columnsMetadata.add(new ColumnMetadata(column.getName(), column.getType()));
+			ColumnMetadata metadata = ColumnMetadata.builder().setName(column.getName())
+					.setComment(Optional.of(column.getColumnMetadata().getComment()))
+					.setProperties(column.getColumnMetadata().getProperties())
+					.setExtraInfo(Optional.of(column.getColumnMetadata().getExtraInfo())).setHidden(false)
+					.setType(column.getType()).build();
+			columnsMetadata.add(metadata);
 		}
 		for (OdpsColumnHandle column : this.partitionColumns) {
-			columnsMetadata.add(new ColumnMetadata(column.getName(), column.getType(), null, "partition key", false));
+			ColumnMetadata metadata = ColumnMetadata.builder().setName(column.getName())
+					.setComment(Optional.of(column.getColumnMetadata().getComment()))
+					.setProperties(column.getColumnMetadata().getProperties())
+					.setExtraInfo(Optional.of("partition key")).setHidden(false).setType(column.getType()).build();
+			columnsMetadata.add(metadata);
 		}
 		this.columnsMetadata = columnsMetadata.build();
 	}

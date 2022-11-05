@@ -231,8 +231,9 @@ public class OdpsMetadata implements ConnectorMetadata {
 
 		ImmutableMap.Builder<String, ColumnHandle> columnHandles = ImmutableMap.builder();
 		for (ColumnMetadata column : table.getColumnsMetadata()) {
-			columnHandles.put(column.getName(), new OdpsColumnHandle(column.getName(), column.getType(),
-					column.getType() instanceof VarcharType && ((VarcharType) column.getType()).isUnbounded()));
+			columnHandles.put(column.getName(),
+					new OdpsColumnHandle(column.getName(), column.getType(), column.getComment(),
+							column.getType() instanceof VarcharType && ((VarcharType) column.getType()).isUnbounded()));
 		}
 		return columnHandles.build();
 	}
@@ -258,7 +259,7 @@ public class OdpsMetadata implements ConnectorMetadata {
 		String schemaName = tableMetadata.getTable().getSchemaName();
 		String tableName = tableMetadata.getTable().getTableName();
 		List<OdpsColumnHandle> inputColumns = tableMetadata.getColumns().stream()
-				.map(e -> new OdpsColumnHandle(e.getName(), e.getType(), false)).collect(toList());
+				.map(e -> new OdpsColumnHandle(e.getName(), e.getType(), e.getComment(), false)).collect(toList());
 		List<String> partitionedBy = ImmutableList.of();
 
 		return new OdpsOutputTableHandle(schemaName, tableName, inputColumns, partitionedBy);
@@ -276,7 +277,7 @@ public class OdpsMetadata implements ConnectorMetadata {
 		String projectName = tableMetadata.getTable().getSchemaName();
 		String tableName = tableMetadata.getTable().getTableName();
 		List<OdpsColumnHandle> inputColumns = tableMetadata.getColumns().stream()
-				.map(e -> new OdpsColumnHandle(e.getName(), e.getType(), false)).collect(toList());
+				.map(e -> new OdpsColumnHandle(e.getName(), e.getType(), e.getComment(), false)).collect(toList());
 		List<String> partitionedBy = ImmutableList.of();
 
 		odpsClient.createTable(projectName, tableName, inputColumns, partitionedBy, ignoreExisting);
