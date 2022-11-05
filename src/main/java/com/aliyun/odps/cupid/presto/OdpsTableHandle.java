@@ -23,80 +23,63 @@ import java.util.Objects;
 import static com.google.common.base.MoreObjects.toStringHelper;
 import static java.util.Objects.requireNonNull;
 
-public class OdpsTableHandle
-        implements ConnectorTableHandle
-{
-    private final String schemaName;
-    private final String tableName;
-    private final OdpsTable odpsTable;
+public class OdpsTableHandle implements ConnectorTableHandle {
+	private final String schemaName;
+	private final String tableName;
+	private final OdpsTable odpsTable;
 
-    @JsonCreator
-    public OdpsTableHandle(
-            @JsonProperty("schemaName") String schemaName,
-            @JsonProperty("tableName") String tableName,
-            @JsonProperty("odpsTable") OdpsTable odpsTable)
-    {
-        this.schemaName = requireNonNull(schemaName, "schemaName is null");
-        this.tableName = requireNonNull(tableName, "tableName is null");
-        this.odpsTable = requireNonNull(odpsTable, "odpsTable is null");
-    }
+	@JsonCreator
+	public OdpsTableHandle(@JsonProperty("schemaName") String schemaName, @JsonProperty("tableName") String tableName,
+			@JsonProperty("odpsTable") OdpsTable odpsTable) {
+		this.schemaName = requireNonNull(schemaName, "schemaName is null");
+		this.tableName = requireNonNull(tableName, "tableName is null");
+		this.odpsTable = requireNonNull(odpsTable, "odpsTable is null");
+	}
 
-    @JsonProperty
-    public String getSchemaName()
-    {
-        return schemaName;
-    }
+	@JsonProperty
+	public String getSchemaName() {
+		return schemaName;
+	}
 
-    @JsonProperty
-    public String getTableName()
-    {
-        return tableName;
-    }
+	@JsonProperty
+	public String getTableName() {
+		return tableName;
+	}
 
-    @JsonProperty
-    public OdpsTable getOdpsTable()
-    {
-        return odpsTable;
-    }
+	@JsonProperty
+	public OdpsTable getOdpsTable() {
+		return odpsTable;
+	}
 
-    public SchemaTableName getSchemaTableName()
-    {
-        return new SchemaTableName(schemaName, tableName);
-    }
+	public SchemaTableName getSchemaTableName() {
+		return new SchemaTableName(schemaName, tableName);
+	}
 
-    public SchemaTableName toSchemaTableName()
-    {
-        return new SchemaTableName(schemaName, tableName);
-    }
+	public SchemaTableName toSchemaTableName() {
+		return new SchemaTableName(schemaName, tableName);
+	}
 
-    @Override
-    public int hashCode()
-    {
-        return Objects.hash(schemaName, tableName);
-    }
+	@Override
+	public int hashCode() {
+		return Objects.hash(schemaName, tableName);
+	}
 
-    @Override
-    public boolean equals(Object obj)
-    {
-        if (this == obj) {
-            return true;
-        }
-        if ((obj == null) || (getClass() != obj.getClass())) {
-            return false;
-        }
+	@Override
+	public boolean equals(Object obj) {
+		if (this == obj) {
+			return true;
+		}
+		if ((obj == null) || (getClass() != obj.getClass())) {
+			return false;
+		}
 
-        OdpsTableHandle other = (OdpsTableHandle) obj;
-        return  Objects.equals(this.schemaName, other.schemaName) &&
-                Objects.equals(this.tableName, other.tableName) &&
-                Objects.equals(this.odpsTable, other.odpsTable);
-    }
+		OdpsTableHandle other = (OdpsTableHandle) obj;
+		return Objects.equals(this.schemaName, other.schemaName) && Objects.equals(this.tableName, other.tableName)
+				&& Objects.equals(this.odpsTable, other.odpsTable);
+	}
 
-    @Override
-    public String toString()
-    {
-        return toStringHelper(this)
-                .add("schemaName", schemaName)
-                .add("tableName", tableName)
-                .toString();
-    }
+	@Override
+	public String toString() {
+		return toStringHelper(this).add("schemaName", schemaName).add("tableName", tableName).toString();
+	}
 }

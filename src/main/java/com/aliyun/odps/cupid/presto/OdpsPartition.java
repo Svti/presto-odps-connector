@@ -23,66 +23,54 @@ import java.util.Objects;
 
 import static java.util.Objects.requireNonNull;
 
-public class OdpsPartition
-{
-    public static final String UNPARTITIONED_ID = "<UNPARTITIONED>";
+public class OdpsPartition {
+	public static final String UNPARTITIONED_ID = "<UNPARTITIONED>";
 
-    private final SchemaTableName tableName;
-    private final String partitionId;
-    private final Map<ColumnHandle, NullableValue> keys;
+	private final SchemaTableName tableName;
+	private final String partitionId;
+	private final Map<ColumnHandle, NullableValue> keys;
 
-    public OdpsPartition(SchemaTableName tableName)
-    {
-        this(tableName, UNPARTITIONED_ID, ImmutableMap.of());
-    }
+	public OdpsPartition(SchemaTableName tableName) {
+		this(tableName, UNPARTITIONED_ID, ImmutableMap.of());
+	}
 
-    public OdpsPartition(
-            SchemaTableName tableName,
-            String partitionId,
-            Map<ColumnHandle, NullableValue> keys)
-    {
-        this.tableName = requireNonNull(tableName, "tableName is null");
-        this.partitionId = requireNonNull(partitionId, "partitionId is null");
-        this.keys = ImmutableMap.copyOf(requireNonNull(keys, "keys is null"));
-    }
+	public OdpsPartition(SchemaTableName tableName, String partitionId, Map<ColumnHandle, NullableValue> keys) {
+		this.tableName = requireNonNull(tableName, "tableName is null");
+		this.partitionId = requireNonNull(partitionId, "partitionId is null");
+		this.keys = ImmutableMap.copyOf(requireNonNull(keys, "keys is null"));
+	}
 
-    public SchemaTableName getTableName()
-    {
-        return tableName;
-    }
+	public SchemaTableName getTableName() {
+		return tableName;
+	}
 
-    public String getPartitionId()
-    {
-        return partitionId;
-    }
+	public String getPartitionId() {
+		return partitionId;
+	}
 
-    public Map<ColumnHandle, NullableValue> getKeys()
-    {
-        return keys;
-    }
+	public Map<ColumnHandle, NullableValue> getKeys() {
+		return keys;
+	}
 
-    @Override
-    public int hashCode()
-    {
-        return Objects.hash(partitionId);
-    }
+	@Override
+	public int hashCode() {
+		return Objects.hash(partitionId);
+	}
 
-    @Override
-    public boolean equals(Object obj)
-    {
-        if (this == obj) {
-            return true;
-        }
-        if (obj == null || getClass() != obj.getClass()) {
-            return false;
-        }
-        OdpsPartition other = (OdpsPartition) obj;
-        return Objects.equals(this.partitionId, other.partitionId);
-    }
+	@Override
+	public boolean equals(Object obj) {
+		if (this == obj) {
+			return true;
+		}
+		if (obj == null || getClass() != obj.getClass()) {
+			return false;
+		}
+		OdpsPartition other = (OdpsPartition) obj;
+		return Objects.equals(this.partitionId, other.partitionId);
+	}
 
-    @Override
-    public String toString()
-    {
-        return tableName + ":" + partitionId;
-    }
+	@Override
+	public String toString() {
+		return tableName + ":" + partitionId;
+	}
 }

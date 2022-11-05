@@ -27,29 +27,26 @@ import java.util.List;
 import static com.google.common.base.Preconditions.checkArgument;
 import static java.util.Objects.requireNonNull;
 
-public class OdpsRecordSetProvider
-        implements ConnectorRecordSetProvider
-{
-    private final String connectorId;
+public class OdpsRecordSetProvider implements ConnectorRecordSetProvider {
+	private final String connectorId;
 
-    @Inject
-    public OdpsRecordSetProvider(OdpsConnectorId connectorId)
-    {
-        this.connectorId = requireNonNull(connectorId, "connectorId is null").toString();
-    }
+	@Inject
+	public OdpsRecordSetProvider(OdpsConnectorId connectorId) {
+		this.connectorId = requireNonNull(connectorId, "connectorId is null").toString();
+	}
 
-    @Override
-    public RecordSet getRecordSet(ConnectorTransactionHandle transactionHandle, ConnectorSession session, ConnectorSplit split, List<? extends ColumnHandle> columns)
-    {
-        requireNonNull(split, "partitionChunk is null");
-        OdpsSplit odpsSplit = (OdpsSplit) split;
-        checkArgument(odpsSplit.getConnectorId().equals(connectorId), "split is not for this connector");
+	@Override
+	public RecordSet getRecordSet(ConnectorTransactionHandle transactionHandle, ConnectorSession session,
+			ConnectorSplit split, List<? extends ColumnHandle> columns) {
+		requireNonNull(split, "partitionChunk is null");
+		OdpsSplit odpsSplit = (OdpsSplit) split;
+		checkArgument(odpsSplit.getConnectorId().equals(connectorId), "split is not for this connector");
 
-        ImmutableList.Builder<OdpsColumnHandle> handles = ImmutableList.builder();
-        for (ColumnHandle handle : columns) {
-            handles.add((OdpsColumnHandle) handle);
-        }
+		ImmutableList.Builder<OdpsColumnHandle> handles = ImmutableList.builder();
+		for (ColumnHandle handle : columns) {
+			handles.add((OdpsColumnHandle) handle);
+		}
 
-        return new OdpsRecordSet(odpsSplit, handles.build());
-    }
+		return new OdpsRecordSet(odpsSplit, handles.build());
+	}
 }

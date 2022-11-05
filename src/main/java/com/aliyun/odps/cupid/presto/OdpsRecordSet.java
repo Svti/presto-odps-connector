@@ -29,47 +29,41 @@ import java.util.List;
 
 import static java.util.Objects.requireNonNull;
 
-public class OdpsRecordSet
-        implements RecordSet
-{
-    private final List<OdpsColumnHandle> columnHandles;
-    private final List<Type> columnTypes;
-    private final SplitReader<ArrayRecord> recordReader;
-    private final InputSplit odpsInputSplit;
-    private final boolean isZeroColumn;
+public class OdpsRecordSet implements RecordSet {
+	private final List<OdpsColumnHandle> columnHandles;
+	private final List<Type> columnTypes;
+	private final SplitReader<ArrayRecord> recordReader;
+	private final InputSplit odpsInputSplit;
+	private final boolean isZeroColumn;
 
-    public OdpsRecordSet(OdpsSplit split, List<OdpsColumnHandle> columnHandles)
-    {
-        requireNonNull(split, "split is null");
+	public OdpsRecordSet(OdpsSplit split, List<OdpsColumnHandle> columnHandles) {
+		requireNonNull(split, "split is null");
 
-        this.columnHandles = requireNonNull(columnHandles, "column handles is null");
-        ImmutableList.Builder<Type> types = ImmutableList.builder();
-        for (OdpsColumnHandle column : columnHandles) {
-            types.add(column.getType());
-        }
-        this.columnTypes = types.build();
-        this.isZeroColumn = split.getIsZeroColumn();
+		this.columnHandles = requireNonNull(columnHandles, "column handles is null");
+		ImmutableList.Builder<Type> types = ImmutableList.builder();
+		for (OdpsColumnHandle column : columnHandles) {
+			types.add(column.getType());
+		}
+		this.columnTypes = types.build();
+		this.isZeroColumn = split.getIsZeroColumn();
 
-        try {
-            ByteArrayInputStream bais = new ByteArrayInputStream(Base64.decodeBase64(split.getInputSplit()));
-            ObjectInputStream in = new ObjectInputStream(bais);
-            odpsInputSplit = (InputSplit) in.readObject();
-            recordReader = new SplitReaderBuilder(odpsInputSplit)
-                    .buildRecordReader();
-        } catch (Exception e) {
-            throw new RuntimeException(e);
-        }
-    }
+		try {
+			ByteArrayInputStream bais = new ByteArrayInputStream(Base64.decodeBase64(split.getInputSplit()));
+			ObjectInputStream in = new ObjectInputStream(bais);
+			odpsInputSplit = (InputSplit) in.readObject();
+			recordReader = new SplitReaderBuilder(odpsInputSplit).buildRecordReader();
+		} catch (Exception e) {
+			throw new RuntimeException(e);
+		}
+	}
 
-    @Override
-    public List<Type> getColumnTypes()
-    {
-        return columnTypes;
-    }
+	@Override
+	public List<Type> getColumnTypes() {
+		return columnTypes;
+	}
 
-    @Override
-    public RecordCursor cursor()
-    {
-        return new OdpsRecordCursor(odpsInputSplit, columnHandles, recordReader, isZeroColumn);
-    }
+	@Override
+	public RecordCursor cursor() {
+		return new OdpsRecordCursor(odpsInputSplit, columnHandles, recordReader, isZeroColumn);
+	}
 }

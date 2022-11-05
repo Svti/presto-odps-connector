@@ -15,8 +15,6 @@ package com.aliyun.odps.cupid.presto;
 
 import com.facebook.presto.spi.connector.ConnectorTransactionHandle;
 
-public enum OdpsTransactionHandle
-        implements ConnectorTransactionHandle
-{
-    INSTANCE
+public enum OdpsTransactionHandle implements ConnectorTransactionHandle {
+	INSTANCE
 }

@@ -24,54 +24,46 @@ import static com.google.common.base.Preconditions.checkArgument;
 import static com.google.common.base.Strings.isNullOrEmpty;
 import static java.util.Objects.requireNonNull;
 
-public class OdpsTable
-{
-    private final String name;
-    private final List<OdpsColumnHandle> dataColumns;
-    private final List<OdpsColumnHandle> partitionColumns;
-    private final List<ColumnMetadata> columnsMetadata;
+public class OdpsTable {
+	private final String name;
+	private final List<OdpsColumnHandle> dataColumns;
+	private final List<OdpsColumnHandle> partitionColumns;
+	private final List<ColumnMetadata> columnsMetadata;
 
-    @JsonCreator
-    public OdpsTable(
-            @JsonProperty("name") String name,
-            @JsonProperty("dataColumns") List<OdpsColumnHandle> dataColumns,
-            @JsonProperty("partitionColumns") List<OdpsColumnHandle> partitionColumns)
-    {
-        checkArgument(!isNullOrEmpty(name), "name is null or is empty");
-        this.name = requireNonNull(name, "name is null");
-        this.dataColumns = ImmutableList.copyOf(requireNonNull(dataColumns, "dataColumns is null"));
-        this.partitionColumns = ImmutableList.copyOf(requireNonNull(partitionColumns, "partitionColumns is null"));
+	@JsonCreator
+	public OdpsTable(@JsonProperty("name") String name, @JsonProperty("dataColumns") List<OdpsColumnHandle> dataColumns,
+			@JsonProperty("partitionColumns") List<OdpsColumnHandle> partitionColumns) {
+		checkArgument(!isNullOrEmpty(name), "name is null or is empty");
+		this.name = requireNonNull(name, "name is null");
+		this.dataColumns = ImmutableList.copyOf(requireNonNull(dataColumns, "dataColumns is null"));
+		this.partitionColumns = ImmutableList.copyOf(requireNonNull(partitionColumns, "partitionColumns is null"));
 
-        ImmutableList.Builder<ColumnMetadata> columnsMetadata = ImmutableList.builder();
-        for (OdpsColumnHandle column : this.dataColumns) {
-            columnsMetadata.add(new ColumnMetadata(column.getName(), column.getType()));
-        }
-        for (OdpsColumnHandle column : this.partitionColumns) {
-            columnsMetadata.add(new ColumnMetadata(column.getName(), column.getType(), null, "partition key", false));
-        }
-        this.columnsMetadata = columnsMetadata.build();
-    }
+		ImmutableList.Builder<ColumnMetadata> columnsMetadata = ImmutableList.builder();
+		for (OdpsColumnHandle column : this.dataColumns) {
+			columnsMetadata.add(new ColumnMetadata(column.getName(), column.getType()));
+		}
+		for (OdpsColumnHandle column : this.partitionColumns) {
+			columnsMetadata.add(new ColumnMetadata(column.getName(), column.getType(), null, "partition key", false));
+		}
+		this.columnsMetadata = columnsMetadata.build();
+	}
 
-    @JsonProperty
-    public String getName()
-    {
-        return name;
-    }
+	@JsonProperty
+	public String getName() {
+		return name;
+	}
 
-    @JsonProperty
-    public List<OdpsColumnHandle> getDataColumns()
-    {
-        return dataColumns;
-    }
+	@JsonProperty
+	public List<OdpsColumnHandle> getDataColumns() {
+		return dataColumns;
+	}
 
-    @JsonProperty
-    public List<OdpsColumnHandle> getPartitionColumns()
-    {
-        return partitionColumns;
-    }
+	@JsonProperty
+	public List<OdpsColumnHandle> getPartitionColumns() {
+		return partitionColumns;
+	}
 
-    public List<ColumnMetadata> getColumnsMetadata()
-    {
-        return columnsMetadata;
-    }
+	public List<ColumnMetadata> getColumnsMetadata() {
+		return columnsMetadata;
+	}
 }

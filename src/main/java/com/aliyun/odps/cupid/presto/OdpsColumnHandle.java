@@ -24,74 +24,58 @@ import java.util.Objects;
 import static com.google.common.base.MoreObjects.toStringHelper;
 import static java.util.Objects.requireNonNull;
 
-public final class OdpsColumnHandle
-        implements ColumnHandle
-{
-    private final String name;
-    private final Type type;
-    private final boolean isStringType;
+public final class OdpsColumnHandle implements ColumnHandle {
+	private final String name;
+	private final Type type;
+	private final boolean isStringType;
 
-    @JsonCreator
-    public OdpsColumnHandle(
-            @JsonProperty("name") String name,
-            @JsonProperty("type") Type type,
-            @JsonProperty("isStringType") boolean isStringType)
-    {
-        this.name = requireNonNull(name, "name is null");
-        this.type = requireNonNull(type, "type is null");
-        this.isStringType = isStringType;
-    }
+	@JsonCreator
+	public OdpsColumnHandle(@JsonProperty("name") String name, @JsonProperty("type") Type type,
+			@JsonProperty("isStringType") boolean isStringType) {
+		this.name = requireNonNull(name, "name is null");
+		this.type = requireNonNull(type, "type is null");
+		this.isStringType = isStringType;
+	}
 
-    @JsonProperty
-    public String getName()
-    {
-        return name;
-    }
+	@JsonProperty
+	public String getName() {
+		return name;
+	}
 
-    @JsonProperty
-    public Type getType()
-    {
-        return type;
-    }
+	@JsonProperty
+	public Type getType() {
+		return type;
+	}
 
-    @JsonProperty
-    public boolean getIsStringType()
-    {
-        return isStringType;
-    }
+	@JsonProperty
+	public boolean getIsStringType() {
+		return isStringType;
+	}
 
-    public ColumnMetadata getColumnMetadata()
-    {
-        return new ColumnMetadata(name, type);
-    }
+	public ColumnMetadata getColumnMetadata() {
+		return new ColumnMetadata(name, type);
+	}
 
-    @Override
-    public int hashCode()
-    {
-        return Objects.hash(name);
-    }
+	@Override
+	public int hashCode() {
+		return Objects.hash(name);
+	}
 
-    @Override
-    public boolean equals(Object obj)
-    {
-        if (this == obj) {
-            return true;
-        }
-        if ((obj == null) || (getClass() != obj.getClass())) {
-            return false;
-        }
+	@Override
+	public boolean equals(Object obj) {
+		if (this == obj) {
+			return true;
+		}
+		if ((obj == null) || (getClass() != obj.getClass())) {
+			return false;
+		}
 
-        OdpsColumnHandle other = (OdpsColumnHandle) obj;
-        return Objects.equals(this.name, other.name) &&
-                Objects.equals(this.type, other.type);
-    }
+		OdpsColumnHandle other = (OdpsColumnHandle) obj;
+		return Objects.equals(this.name, other.name) && Objects.equals(this.type, other.type);
+	}
 
-    @Override
-    public String toString()
-    {
-        return toStringHelper(this)
-                .add("name", name)
-                .add("type", type)
-                .toString();
-    }
+	@Override
+	public String toString() {
+		return toStringHelper(this).add("name", name).add("type", type).toString();
+	}
 }

@@ -28,29 +28,28 @@ import static com.facebook.presto.spi.StandardErrorCode.NOT_SUPPORTED;
 import static com.google.common.base.Preconditions.checkArgument;
 import static java.util.Objects.requireNonNull;
 
-public class OdpsPageSinkProvider
-        implements ConnectorPageSinkProvider
-{
+public class OdpsPageSinkProvider implements ConnectorPageSinkProvider {
 
-    @Inject
-    public OdpsPageSinkProvider()
-    {
-    }
+	@Inject
+	public OdpsPageSinkProvider() {
+	}
 
-    @Override
-    public ConnectorPageSink createPageSink(ConnectorTransactionHandle transactionHandle, ConnectorSession session, ConnectorOutputTableHandle outputTableHandle, PageSinkProperties pageSinkProperties)
-    {
-        throw new PrestoException(NOT_SUPPORTED, "This connector does not support create table insert type");
-    }
+	@Override
+	public ConnectorPageSink createPageSink(ConnectorTransactionHandle transactionHandle, ConnectorSession session,
+			ConnectorOutputTableHandle outputTableHandle, PageSinkProperties pageSinkProperties) {
+		throw new PrestoException(NOT_SUPPORTED, "This connector does not support create table insert type");
+	}
 
-    @Override
-    public ConnectorPageSink createPageSink(ConnectorTransactionHandle transactionHandle, ConnectorSession session, ConnectorInsertTableHandle insertTableHandle, PageSinkProperties pageSinkProperties)
-    {
-        checkArgument(!pageSinkProperties.isPartitionCommitRequired(), "Odps connector does not support partition commit");
-        requireNonNull(insertTableHandle, "insertTableHandle is null");
-        checkArgument(insertTableHandle instanceof OdpsInsertTableHandle, "insertTableHandle is not an instance of KuduInsertTableHandle");
-        OdpsInsertTableHandle handle = (OdpsInsertTableHandle) insertTableHandle;
+	@Override
+	public ConnectorPageSink createPageSink(ConnectorTransactionHandle transactionHandle, ConnectorSession session,
+			ConnectorInsertTableHandle insertTableHandle, PageSinkProperties pageSinkProperties) {
+		checkArgument(!pageSinkProperties.isPartitionCommitRequired(),
+				"Odps connector does not support partition commit");
+		requireNonNull(insertTableHandle, "insertTableHandle is null");
+		checkArgument(insertTableHandle instanceof OdpsInsertTableHandle,
+				"insertTableHandle is not an instance of KuduInsertTableHandle");
+		OdpsInsertTableHandle handle = (OdpsInsertTableHandle) insertTableHandle;
 
-        return new OdpsPageSink(session, handle);
-    }
+		return new OdpsPageSink(session, handle);
+	}
 }
