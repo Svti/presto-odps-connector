@@ -13,10 +13,17 @@
  */
 package com.aliyun.odps.cupid.presto;
 
-import com.facebook.airlift.configuration.Config;
+import static java.util.concurrent.TimeUnit.MINUTES;
 
 import java.util.ArrayList;
 import java.util.List;
+
+import javax.validation.constraints.NotNull;
+
+import com.facebook.airlift.configuration.Config;
+
+import io.airlift.units.Duration;
+import io.airlift.units.MinDuration;
 
 public class OdpsConfig {
 	private String project;
@@ -26,6 +33,8 @@ public class OdpsConfig {
 	private String tunnelEndpoint;
 	private int splitSize;
 	private List<String> extraProjectList = new ArrayList<>(2);
+	private boolean caseInsensitiveNameMatching;
+	private Duration caseInsensitiveNameMatchingCacheTtl = new Duration(1, MINUTES);
 
 	public List<String> getExtraProjectList() {
 		return extraProjectList;
@@ -55,6 +64,28 @@ public class OdpsConfig {
 		return splitSize;
 	}
 
+	public boolean isCaseInsensitiveNameMatching() {
+		return caseInsensitiveNameMatching;
+	}
+
+	@Config("case-insensitive-name-matching")
+	public OdpsConfig setCaseInsensitiveNameMatching(boolean caseInsensitiveNameMatching) {
+		this.caseInsensitiveNameMatching = caseInsensitiveNameMatching;
+		return this;
+	}
+
+	@NotNull
+	@MinDuration("0ms")
+	public Duration getCaseInsensitiveNameMatchingCacheTtl() {
+		return caseInsensitiveNameMatchingCacheTtl;
+	}
+
+	@Config("case-insensitive-name-matching.cache-ttl")
+	public OdpsConfig setCaseInsensitiveNameMatchingCacheTtl(Duration caseInsensitiveNameMatchingCacheTtl) {
+		this.caseInsensitiveNameMatchingCacheTtl = caseInsensitiveNameMatchingCacheTtl;
+		return this;
+	}
+
 	@Config("odps.project.name.extra.list")
 	public OdpsConfig setExtraProjectList(String projectList) {
 		for (String prj : projectList.split(",")) {
@@ -62,7 +93,6 @@ public class OdpsConfig {
 				this.extraProjectList.add(prj.trim());
 			}
 		}
-
 		return this;
 	}
 
