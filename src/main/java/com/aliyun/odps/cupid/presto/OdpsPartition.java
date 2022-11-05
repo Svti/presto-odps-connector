@@ -15,7 +15,7 @@ package com.aliyun.odps.cupid.presto;
 
 import com.facebook.presto.spi.ColumnHandle;
 import com.facebook.presto.spi.SchemaTableName;
-import com.facebook.presto.spi.predicate.NullableValue;
+import com.facebook.presto.common.predicate.NullableValue;
 import com.google.common.collect.ImmutableMap;
 
 import java.util.Map;

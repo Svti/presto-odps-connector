@@ -6,7 +6,7 @@
 
 	<properties>
 		<dep.airlift.version>0.187</dep.airlift.version>
-		<dep.presto.version>0.229</dep.presto.version>
+		<dep.presto.version>0.277</dep.presto.version>
 		<dep.jackson.version>2.9.8</dep.jackson.version>
 		<project.basedir>/john/Develop/java/presto-odps-connector/</project.basedir>
 	</properties>

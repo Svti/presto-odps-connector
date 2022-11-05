@@ -17,7 +17,7 @@ import com.facebook.presto.spi.ConnectorInsertTableHandle;
 import com.facebook.presto.spi.ConnectorOutputTableHandle;
 import com.facebook.presto.spi.ConnectorPageSink;
 import com.facebook.presto.spi.ConnectorSession;
-import com.facebook.presto.spi.PageSinkProperties;
+import com.facebook.presto.spi.PageSinkContext;
 import com.facebook.presto.spi.PrestoException;
 import com.facebook.presto.spi.connector.ConnectorPageSinkProvider;
 import com.facebook.presto.spi.connector.ConnectorTransactionHandle;
@@ -36,15 +36,14 @@ public class OdpsPageSinkProvider implements ConnectorPageSinkProvider {
 
 	@Override
 	public ConnectorPageSink createPageSink(ConnectorTransactionHandle transactionHandle, ConnectorSession session,
-			ConnectorOutputTableHandle outputTableHandle, PageSinkProperties pageSinkProperties) {
+			ConnectorOutputTableHandle outputTableHandle, PageSinkContext pageSinkContext) {
 		throw new PrestoException(NOT_SUPPORTED, "This connector does not support create table insert type");
 	}
 
 	@Override
 	public ConnectorPageSink createPageSink(ConnectorTransactionHandle transactionHandle, ConnectorSession session,
-			ConnectorInsertTableHandle insertTableHandle, PageSinkProperties pageSinkProperties) {
-		checkArgument(!pageSinkProperties.isPartitionCommitRequired(),
-				"Odps connector does not support partition commit");
+			ConnectorInsertTableHandle insertTableHandle, PageSinkContext pageSinkContext) {
+		checkArgument(!pageSinkContext.isCommitRequired(), "Odps connector does not support partition commit");
 		requireNonNull(insertTableHandle, "insertTableHandle is null");
 		checkArgument(insertTableHandle instanceof OdpsInsertTableHandle,
 				"insertTableHandle is not an instance of KuduInsertTableHandle");

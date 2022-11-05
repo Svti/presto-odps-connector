@@ -13,15 +13,17 @@
  */
 package com.aliyun.odps.cupid.presto;
 
-import com.facebook.presto.spi.ConnectorSplit;
-import com.facebook.presto.spi.HostAddress;
-import com.fasterxml.jackson.annotation.JsonCreator;
-import com.fasterxml.jackson.annotation.JsonProperty;
-import com.google.common.collect.ImmutableList;
+import static java.util.Objects.requireNonNull;
 
 import java.util.List;
 
-import static java.util.Objects.requireNonNull;
+import com.facebook.presto.spi.ConnectorSplit;
+import com.facebook.presto.spi.HostAddress;
+import com.facebook.presto.spi.NodeProvider;
+import com.facebook.presto.spi.schedule.NodeSelectionStrategy;
+import com.fasterxml.jackson.annotation.JsonCreator;
+import com.fasterxml.jackson.annotation.JsonProperty;
+import com.google.common.collect.ImmutableList;
 
 public class OdpsSplit implements ConnectorSplit {
 	private final String connectorId;
@@ -29,16 +31,21 @@ public class OdpsSplit implements ConnectorSplit {
 	private final String tableName;
 	private final String inputSplit;
 	private final boolean isZeroColumn;
+	private final List<HostAddress> addresses;
+	private final NodeSelectionStrategy nodeSelectionStrategy;
 
 	@JsonCreator
 	public OdpsSplit(@JsonProperty("connectorId") String connectorId, @JsonProperty("schemaName") String schemaName,
 			@JsonProperty("tableName") String tableName, @JsonProperty("inputSplit") String inputSplit,
-			@JsonProperty("isZeroColumn") boolean isZeroColumn) {
+			@JsonProperty("isZeroColumn") boolean isZeroColumn, @JsonProperty("addresses") List<HostAddress> addresses,
+			@JsonProperty("nodeSelectionStrategy") NodeSelectionStrategy nodeSelectionStrategy) {
 		this.schemaName = requireNonNull(schemaName, "schema name is null");
 		this.connectorId = requireNonNull(connectorId, "connector id is null");
 		this.tableName = requireNonNull(tableName, "table name is null");
 		this.inputSplit = requireNonNull(inputSplit, "inputSplit is null");
 		this.isZeroColumn = isZeroColumn;
+		this.addresses = ImmutableList.copyOf(requireNonNull(addresses, "addresses is null"));
+		this.nodeSelectionStrategy = requireNonNull(nodeSelectionStrategy, "nodeSelectionStrategy is null");
 	}
 
 	@JsonProperty
@@ -66,18 +73,24 @@ public class OdpsSplit implements ConnectorSplit {
 		return isZeroColumn;
 	}
 
-	@Override
-	public boolean isRemotelyAccessible() {
-		return true;
-	}
-
-	@Override
-	public List<HostAddress> getAddresses() {
-		return ImmutableList.of();
-	}
-
-	@Override
+	@JsonProperty
 	public Object getInfo() {
 		return this;
 	}
+
+	@JsonProperty
+	public NodeSelectionStrategy getNodeSelectionStrategy() {
+		return nodeSelectionStrategy;
+	}
+
+	@JsonProperty
+	public List<HostAddress> getAddresses() {
+		return addresses;
+	}
+
+	@Override
+	public List<HostAddress> getPreferredNodes(NodeProvider nodeProvider) {
+		return addresses;
+	}
+
 }

@@ -19,7 +19,7 @@ import com.aliyun.odps.cupid.table.v1.reader.SplitReaderBuilder;
 import com.aliyun.odps.data.ArrayRecord;
 import com.facebook.presto.spi.RecordCursor;
 import com.facebook.presto.spi.RecordSet;
-import com.facebook.presto.spi.type.Type;
+import com.facebook.presto.common.type.Type;
 import com.google.common.collect.ImmutableList;
 import org.apache.commons.codec.binary.Base64;
 
