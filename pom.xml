@@ -8,6 +8,7 @@
 		<dep.airlift.version>0.187</dep.airlift.version>
 		<dep.presto.version>0.229</dep.presto.version>
 		<dep.jackson.version>2.9.8</dep.jackson.version>
+		<project.basedir>/john/Develop/java/presto-odps-connector/</project.basedir>
 	</properties>
 
 	<dependencies>
@@ -94,6 +95,28 @@
 			<artifactId>odps-sdk-commons</artifactId>
 			<version>0.33.7-public</version>
 			<scope>compile</scope>
+		</dependency>
+
+        <dependency>
+			<groupId>com.aliyun.odps</groupId>
+			<artifactId>cupid-table-api</artifactId>
+			<version>1.0.1-presto-SNAPSHOT</version>
+			<scope>system</scope>
+			<systemPath>${project.basedir}/libs/cupid-table-api-1.0.1-presto-SNAPSHOT.jar</systemPath>
+		</dependency>
+		<dependency>
+			<groupId>com.aliyun.odps</groupId>
+			<artifactId>cupid-sdk</artifactId>
+			<version>3.3.9</version>
+			<scope>system</scope>
+			<systemPath>${project.basedir}/libs/cupid-sdk-3.3.9.jar</systemPath>
+		</dependency>
+		<dependency>
+			<groupId>com.aliyun.odps.cupid</groupId>
+			<artifactId>table-api-tunnel-impl</artifactId>
+			<version>1.0-presto-SNAPSHOT</version>
+			<scope>system</scope>
+			<systemPath>${project.basedir}/libs/table-api-tunnel-impl-1.0-presto-SNAPSHOT.jar</systemPath>
 		</dependency>
 
 	</dependencies>
