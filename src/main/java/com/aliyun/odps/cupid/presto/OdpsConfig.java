@@ -68,7 +68,7 @@ public class OdpsConfig {
 		return caseInsensitiveNameMatching;
 	}
 
-	@Config("case-insensitive-name-matching")
+	@Config("odps.case-insensitive-name-matching")
 	public OdpsConfig setCaseInsensitiveNameMatching(boolean caseInsensitiveNameMatching) {
 		this.caseInsensitiveNameMatching = caseInsensitiveNameMatching;
 		return this;
@@ -80,7 +80,7 @@ public class OdpsConfig {
 		return caseInsensitiveNameMatchingCacheTtl;
 	}
 
-	@Config("case-insensitive-name-matching.cache-ttl")
+	@Config("odps.case-insensitive-name-matching.cache-ttl")
 	public OdpsConfig setCaseInsensitiveNameMatchingCacheTtl(Duration caseInsensitiveNameMatchingCacheTtl) {
 		this.caseInsensitiveNameMatchingCacheTtl = caseInsensitiveNameMatchingCacheTtl;
 		return this;
