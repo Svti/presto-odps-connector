@@ -25,11 +25,9 @@ import com.facebook.presto.spi.ConnectorSplit;
 import com.facebook.presto.spi.ConnectorSplitSource;
 import com.facebook.presto.spi.ConnectorTableLayoutHandle;
 import com.facebook.presto.spi.FixedSplitSource;
-import com.facebook.presto.spi.HostAddress;
 import com.facebook.presto.spi.PrestoException;
 import com.facebook.presto.spi.connector.ConnectorSplitManager;
 import com.facebook.presto.spi.connector.ConnectorTransactionHandle;
-import com.facebook.presto.spi.schedule.NodeSelectionStrategy;
 import com.facebook.presto.common.predicate.NullableValue;
 import com.google.common.collect.ImmutableList;
 import io.airlift.slice.Slice;
@@ -56,13 +54,11 @@ public class OdpsSplitManager implements ConnectorSplitManager {
 	private final OdpsClient odpsClient;
 	private final String tableApiProvider;
 	private final int splitSize;
-	private final List<HostAddress> addresses;
 
 	@Inject
 	public OdpsSplitManager(OdpsConnectorId connectorId, OdpsClient odpsClient) {
 		this.connectorId = requireNonNull(connectorId, "connectorId is null").toString();
 		this.odpsClient = requireNonNull(odpsClient, "client is null");
-		this.addresses = ImmutableList.of();
 		if (System.getenv("META_LOOKUP_NAME") != null) {
 			tableApiProvider = "cupid-native";
 		} else {
@@ -135,8 +131,7 @@ public class OdpsSplitManager implements ConnectorSplitManager {
 			}
 			String splitBase64Str = Base64.encodeBase64String(baos.toByteArray());
 			splits.add(new OdpsSplit(connectorId, layoutHandle.getSchemaTableName().getSchemaName(),
-					layoutHandle.getSchemaTableName().getTableName(), splitBase64Str, isZeroColumn, addresses,
-					NodeSelectionStrategy.NO_PREFERENCE));
+					layoutHandle.getSchemaTableName().getTableName(), splitBase64Str, isZeroColumn));
 		}
 		Collections.shuffle(splits);
 

@@ -31,21 +31,16 @@ public class OdpsSplit implements ConnectorSplit {
 	private final String tableName;
 	private final String inputSplit;
 	private final boolean isZeroColumn;
-	private final List<HostAddress> addresses;
-	private final NodeSelectionStrategy nodeSelectionStrategy;
 
 	@JsonCreator
 	public OdpsSplit(@JsonProperty("connectorId") String connectorId, @JsonProperty("schemaName") String schemaName,
 			@JsonProperty("tableName") String tableName, @JsonProperty("inputSplit") String inputSplit,
-			@JsonProperty("isZeroColumn") boolean isZeroColumn, @JsonProperty("addresses") List<HostAddress> addresses,
-			@JsonProperty("nodeSelectionStrategy") NodeSelectionStrategy nodeSelectionStrategy) {
+			@JsonProperty("isZeroColumn") boolean isZeroColumn) {
 		this.schemaName = requireNonNull(schemaName, "schema name is null");
 		this.connectorId = requireNonNull(connectorId, "connector id is null");
 		this.tableName = requireNonNull(tableName, "table name is null");
 		this.inputSplit = requireNonNull(inputSplit, "inputSplit is null");
 		this.isZeroColumn = isZeroColumn;
-		this.addresses = ImmutableList.copyOf(requireNonNull(addresses, "addresses is null"));
-		this.nodeSelectionStrategy = requireNonNull(nodeSelectionStrategy, "nodeSelectionStrategy is null");
 	}
 
 	@JsonProperty
@@ -73,24 +68,19 @@ public class OdpsSplit implements ConnectorSplit {
 		return isZeroColumn;
 	}
 
-	@JsonProperty
+	@Override
 	public Object getInfo() {
 		return this;
 	}
 
-	@JsonProperty
+	@Override
 	public NodeSelectionStrategy getNodeSelectionStrategy() {
-		return nodeSelectionStrategy;
-	}
-
-	@JsonProperty
-	public List<HostAddress> getAddresses() {
-		return addresses;
+		return NodeSelectionStrategy.NO_PREFERENCE;
 	}
 
 	@Override
 	public List<HostAddress> getPreferredNodes(NodeProvider nodeProvider) {
-		return addresses;
+		return ImmutableList.of();
 	}
 
 }

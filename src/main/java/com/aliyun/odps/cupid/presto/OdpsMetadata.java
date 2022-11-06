@@ -206,13 +206,11 @@ public class OdpsMetadata implements ConnectorMetadata {
 		OdpsTableHandle odpsTableHandle = (OdpsTableHandle) table;
 		SchemaTableName tableName = new SchemaTableName(odpsTableHandle.getSchemaName(),
 				odpsTableHandle.getTableName());
-
 		return getTableMetadata(tableName);
 	}
 
 	@Override
 	public List<SchemaTableName> listTables(ConnectorSession session, String schemaNameOrNull) {
-
 		ImmutableList.Builder<SchemaTableName> tableNames = ImmutableList.builder();
 		for (Entry<String, String> entry : odpsClient.getTables().entrySet()) {
 			// Ignore ambiguous tables
@@ -345,9 +343,6 @@ public class OdpsMetadata implements ConnectorMetadata {
 	}
 
 	private ConnectorTableMetadata getTableMetadata(SchemaTableName tableName) {
-		if (!listSchemaNames().contains(tableName.getSchemaName())) {
-			return null;
-		}
 		OdpsTable table = odpsClient.getTable(tableName.getSchemaName(), tableName.getTableName());
 		if (table == null) {
 			return null;
