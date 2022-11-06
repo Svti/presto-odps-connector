@@ -6,8 +6,7 @@ import com.aliyun.odps.type.DecimalTypeInfo;
 import com.aliyun.odps.type.TypeInfo;
 import com.aliyun.odps.type.TypeInfoFactory;
 import com.aliyun.odps.type.VarcharTypeInfo;
-import com.facebook.presto.spi.PrestoException;
-
+import com.aliyun.odps.utils.StringUtils;
 import com.facebook.presto.common.type.BigintType;
 import com.facebook.presto.common.type.BooleanType;
 import com.facebook.presto.common.type.CharType;
@@ -22,12 +21,13 @@ import com.facebook.presto.common.type.TinyintType;
 import com.facebook.presto.common.type.Type;
 import com.facebook.presto.common.type.VarbinaryType;
 import com.facebook.presto.common.type.VarcharType;
+import com.facebook.presto.spi.PrestoException;
 
 public class OdpsUtils {
 	public static OdpsColumnHandle buildOdpsColumn(Column col) {
 		boolean isStringType = false;
 		Type prestoType = null;
-		String comment = col.getComment();
+		String comment = ifNull(col.getComment(), "");
 		switch (col.getTypeInfo().getOdpsType()) {
 		case TINYINT:
 			prestoType = TinyintType.TINYINT;
@@ -91,6 +91,27 @@ public class OdpsUtils {
 
 	public static Column toOdpsColumn(OdpsColumnHandle columnHandle) {
 		return new Column(columnHandle.getName(), toOdpsType(columnHandle.getType(), columnHandle.getIsStringType()));
+	}
+
+	public static String ifNull(Object input, String then) {
+
+		if (input instanceof String) {
+
+			String _input = (String) input;
+			if (StringUtils.isEmpty(_input)) {
+				return then;
+			} else {
+				return _input;
+			}
+
+		} else {
+			if (input == null) {
+				return then;
+			} else {
+				return String.valueOf(input);
+			}
+		}
+
 	}
 
 	public static TypeInfo toOdpsType(Type type, boolean isStringType) {

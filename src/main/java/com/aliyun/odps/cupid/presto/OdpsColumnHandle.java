@@ -20,6 +20,7 @@ import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
 import java.util.Objects;
+import java.util.Optional;
 
 import static com.google.common.base.MoreObjects.toStringHelper;
 import static java.util.Objects.requireNonNull;
@@ -32,7 +33,7 @@ public final class OdpsColumnHandle implements ColumnHandle {
 
 	@JsonCreator
 	public OdpsColumnHandle(@JsonProperty("name") String name, @JsonProperty("type") Type type,
-			@JsonProperty("name") String comment, @JsonProperty("isStringType") boolean isStringType) {
+			@JsonProperty("comment") String comment, @JsonProperty("isStringType") boolean isStringType) {
 		this.name = requireNonNull(name, "name is null");
 		this.type = requireNonNull(type, "type is null");
 		this.comment = comment;
@@ -60,7 +61,8 @@ public final class OdpsColumnHandle implements ColumnHandle {
 	}
 
 	public ColumnMetadata getColumnMetadata() {
-		return new ColumnMetadata(name, type);
+		return ColumnMetadata.builder().setName(name).setComment(Optional.of(comment)).setHidden(false).setType(type)
+				.build();
 	}
 
 	@Override

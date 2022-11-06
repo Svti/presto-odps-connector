@@ -38,6 +38,7 @@ import com.facebook.presto.spi.TableNotFoundException;
 import com.facebook.presto.spi.connector.ConnectorMetadata;
 import com.facebook.presto.spi.connector.ConnectorOutputMetadata;
 import com.facebook.presto.spi.connector.ConnectorTransactionHandle;
+import com.facebook.airlift.log.Logger;
 import com.facebook.presto.common.predicate.Domain;
 import com.facebook.presto.common.predicate.NullableValue;
 import com.facebook.presto.common.predicate.TupleDomain;
@@ -48,7 +49,6 @@ import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Predicates;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
-import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Maps;
 import io.airlift.slice.Slice;
 import org.apache.commons.codec.binary.Base64;
@@ -61,6 +61,7 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;
+import java.util.Map.Entry;
 import java.util.Optional;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
@@ -77,6 +78,8 @@ import static java.util.function.Function.identity;
 import static java.util.stream.Collectors.toList;
 
 public class OdpsMetadata implements ConnectorMetadata {
+	private static final Logger log = Logger.get(OdpsMetadata.class);
+
 	private static final String PARTITIONS_TABLE_SUFFIX = "$partitions";
 
 	private final OdpsClient odpsClient;
@@ -90,7 +93,7 @@ public class OdpsMetadata implements ConnectorMetadata {
 
 	@Override
 	public List<String> listSchemaNames(ConnectorSession session) {
-		return listSchemaNames();
+		return listSchemaNames().stream().map(e -> e.toLowerCase()).collect(Collectors.toList());
 	}
 
 	public List<String> listSchemaNames() {
@@ -98,17 +101,21 @@ public class OdpsMetadata implements ConnectorMetadata {
 	}
 
 	@Override
-	public OdpsTableHandle getTableHandle(ConnectorSession session, SchemaTableName tableName) {
-		if (!listSchemaNames(session).contains(tableName.getSchemaName())) {
-			return null;
-		}
+	public OdpsTableHandle getTableHandle(ConnectorSession session, SchemaTableName schemaTableName) {
 
-		OdpsTable table = odpsClient.getTable(tableName.getSchemaName(), tableName.getTableName());
+		String remoteTableName = odpsClient.toRemoteTable(schemaTableName)
+				.map(OdpsClient.RemoteTableObject::getOnlyRemoteTableName).orElse(schemaTableName.getTableName());
+
+		OdpsTable table = odpsClient.getTable(schemaTableName.getSchemaName(), schemaTableName.getTableName());
+
 		if (table == null) {
 			return null;
 		}
 
-		return new OdpsTableHandle(tableName.getSchemaName(), tableName.getTableName(), table);
+		return odpsClient.getTables().keySet().stream().filter(name -> name.equals(remoteTableName))
+				.map(name -> new OdpsTableHandle(schemaTableName.getSchemaName(), remoteTableName, table)).findFirst()
+				.orElse(null);
+
 	}
 
 	@Override
@@ -205,20 +212,22 @@ public class OdpsMetadata implements ConnectorMetadata {
 
 	@Override
 	public List<SchemaTableName> listTables(ConnectorSession session, String schemaNameOrNull) {
-		Set<String> schemaNames;
-		if (schemaNameOrNull != null) {
-			schemaNames = ImmutableSet.of(schemaNameOrNull);
-		} else {
-			schemaNames = odpsClient.getProjectNames();
-		}
 
-		ImmutableList.Builder<SchemaTableName> builder = ImmutableList.builder();
-		for (String schemaName : schemaNames) {
-			for (String tableName : odpsClient.getTableNames(schemaName)) {
-				builder.add(new SchemaTableName(schemaName, tableName));
+		ImmutableList.Builder<SchemaTableName> tableNames = ImmutableList.builder();
+		for (Entry<String, String> entry : odpsClient.getTables().entrySet()) {
+			// Ignore ambiguous tables
+			String table = entry.getKey();
+			String schema = entry.getValue();
+			boolean isAmbiguous = odpsClient.toRemoteTable(new SchemaTableName(schema, table))
+					.filter(OdpsClient.RemoteTableObject::isAmbiguous).isPresent();
+
+			if (!isAmbiguous) {
+				tableNames.add(new SchemaTableName(schema, table));
+			} else {
+				log.debug("Filtered out [%s.%s] from list of tables due to ambiguous name", schema, table);
 			}
 		}
-		return builder.build();
+		return tableNames.build();
 	}
 
 	@Override
@@ -339,12 +348,10 @@ public class OdpsMetadata implements ConnectorMetadata {
 		if (!listSchemaNames().contains(tableName.getSchemaName())) {
 			return null;
 		}
-
 		OdpsTable table = odpsClient.getTable(tableName.getSchemaName(), tableName.getTableName());
 		if (table == null) {
 			return null;
 		}
-
 		return new ConnectorTableMetadata(tableName, table.getColumnsMetadata());
 	}
 

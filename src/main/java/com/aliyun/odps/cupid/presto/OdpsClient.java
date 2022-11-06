@@ -13,6 +13,28 @@
  */
 package com.aliyun.odps.cupid.presto;
 
+import static com.google.common.collect.ImmutableList.toImmutableList;
+import static com.google.common.collect.ImmutableSet.toImmutableSet;
+import static com.google.common.collect.Iterables.getOnlyElement;
+import static java.util.Locale.ENGLISH;
+import static java.util.Objects.requireNonNull;
+import static java.util.concurrent.TimeUnit.MILLISECONDS;
+
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Map.Entry;
+import java.util.Optional;
+import java.util.Set;
+import java.util.function.Consumer;
+import java.util.stream.Collectors;
+
+import javax.annotation.Nullable;
+import javax.inject.Inject;
+
 import com.aliyun.odps.Odps;
 import com.aliyun.odps.OdpsException;
 import com.aliyun.odps.PartitionSpec;
@@ -23,32 +45,29 @@ import com.aliyun.odps.cupid.CupidSession;
 import com.aliyun.odps.task.SQLTask;
 import com.aliyun.odps.utils.StringUtils;
 import com.facebook.airlift.json.JsonCodec;
+import com.facebook.presto.common.predicate.Domain;
+import com.facebook.presto.common.predicate.NullableValue;
+import com.facebook.presto.common.type.VarcharType;
 import com.facebook.presto.spi.ColumnHandle;
 import com.facebook.presto.spi.Constraint;
 import com.facebook.presto.spi.PrestoException;
 import com.facebook.presto.spi.SchemaTableName;
-import com.facebook.presto.common.predicate.Domain;
-import com.facebook.presto.common.predicate.NullableValue;
-import com.facebook.presto.common.type.VarcharType;
+import com.google.common.base.CharMatcher;
+import com.google.common.cache.Cache;
+import com.google.common.cache.CacheBuilder;
 import com.google.common.collect.ImmutableList;
+import com.google.common.collect.ImmutableSet;
+
 import io.airlift.slice.Slices;
+import io.airlift.units.Duration;
 
-import javax.inject.Inject;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.LinkedHashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
-import java.util.Set;
-import java.util.function.Consumer;
-import java.util.stream.Collectors;
-
-import static com.google.common.collect.ImmutableList.toImmutableList;
-import static java.util.Objects.requireNonNull;
+import static com.google.common.base.Verify.verify;
 
 public class OdpsClient {
+	
 	private final OdpsConfig odpsConfig;
+	protected final boolean caseInsensitiveNameMatching;
+	private final Cache<SchemaTableName, Optional<RemoteTableObject>> remoteTables;
 
 	@Inject
 	public OdpsClient(OdpsConfig config, JsonCodec<Map<String, List<OdpsTable>>> catalogCodec) {
@@ -77,6 +96,50 @@ public class OdpsClient {
 			}
 		}
 		CupidSession.setConf(cupidConf);
+
+		this.caseInsensitiveNameMatching = config.isCaseInsensitiveNameMatching();
+		Duration caseInsensitiveNameMatchingCacheTtl = requireNonNull(config.getCaseInsensitiveNameMatchingCacheTtl(),
+				"caseInsensitiveNameMatchingCacheTtl is null");
+		CacheBuilder<Object, Object> remoteTableNamesCacheBuilder = CacheBuilder.newBuilder()
+				.expireAfterWrite(caseInsensitiveNameMatchingCacheTtl.toMillis(), MILLISECONDS);
+		this.remoteTables = remoteTableNamesCacheBuilder.build();
+
+	}
+
+	Optional<RemoteTableObject> toRemoteTable(SchemaTableName schemaTableName) {
+
+		requireNonNull(schemaTableName, "schemaTableName is null");
+
+		verify(CharMatcher.forPredicate(Character::isUpperCase).matchesNoneOf(schemaTableName.getTableName()),
+				"Expected table name from internal metadata to be lowercase: %s", schemaTableName);
+
+		if (!caseInsensitiveNameMatching) {
+			return Optional.of(RemoteTableObject.of(schemaTableName.getTableName()));
+		}
+
+		@Nullable
+		Optional<RemoteTableObject> remoteTable = remoteTables.getIfPresent(schemaTableName);
+		if (remoteTable != null) {
+			return remoteTable;
+		}
+
+		// Cache miss, reload the cache
+		Map<SchemaTableName, Optional<RemoteTableObject>> mapping = new HashMap<>();
+		for (Entry<String, String> entry : getTables().entrySet()) {
+			String table = entry.getKey();
+			String schema = entry.getValue();
+			SchemaTableName cacheKey = new SchemaTableName(schema, table);
+			mapping.merge(cacheKey, Optional.of(RemoteTableObject.of(table)), (currentValue, collision) -> currentValue
+					.map(current -> current.registerCollision(collision.get().getOnlyRemoteTableName())));
+			remoteTables.put(cacheKey, mapping.get(cacheKey));
+		}
+
+		// explicitly cache if the requested table doesn't exist
+		if (!mapping.containsKey(schemaTableName)) {
+			remoteTables.put(schemaTableName, Optional.empty());
+		}
+
+		return mapping.containsKey(schemaTableName) ? mapping.get(schemaTableName) : Optional.empty();
 	}
 
 	private Odps getOdps() {
@@ -88,21 +151,35 @@ public class OdpsClient {
 	}
 
 	public Set<String> getProjectNames() {
-		Set<String> projects = new HashSet<>(odpsConfig.getExtraProjectList());
+		Set<String> projects = new HashSet<>();
+		projects.addAll(odpsConfig.getExtraProjectList());
 		projects.add(getOdps().getDefaultProject());
+		projects.stream().map(e -> e.toLowerCase(ENGLISH)).collect(toImmutableSet());
 		return projects;
 	}
 
 	public Set<String> getTableNames(String projectName) {
 		requireNonNull(projectName, "projectName is null");
-		Set<String> tableNames = new HashSet<>(2);
+		Set<String> tableNames = new HashSet<>();
 		getOdps().tables().iterable(projectName).forEach(new Consumer<Table>() {
 			@Override
 			public void accept(Table table) {
 				tableNames.add(table.getName());
 			}
 		});
+		tableNames.stream().map(e -> e.toLowerCase(ENGLISH)).collect(toImmutableSet());
 		return tableNames;
+	}
+
+	public Map<String, String> getTables() {
+		Map<String, String> tables = new HashMap<>();
+		for (String project : getProjectNames()) {
+			Set<String> sets = getTableNames(project);
+			for (String set : sets) {
+				tables.put(set, project);
+			}
+		}
+		return tables;
 	}
 
 	public OdpsTable getTable(String projectName, String tableName) {
@@ -148,7 +225,7 @@ public class OdpsClient {
 	private Map<ColumnHandle, NullableValue> getPartitionKVs(PartitionSpec odpsPartition) {
 		Map<ColumnHandle, NullableValue> kvs = new LinkedHashMap<>(2);
 		for (String key : odpsPartition.keys()) {
-			OdpsColumnHandle columnHandle = new OdpsColumnHandle(key, VarcharType.VARCHAR, "",true);
+			OdpsColumnHandle columnHandle = new OdpsColumnHandle(key, VarcharType.VARCHAR, "", true);
 			kvs.put(columnHandle, new NullableValue(VarcharType.VARCHAR, Slices.utf8Slice(odpsPartition.get(key))));
 		}
 		return kvs;
@@ -227,6 +304,41 @@ public class OdpsClient {
 			SQLTask.run(getOdps(), sql).waitForSuccess();
 		} catch (OdpsException e) {
 			throw new RuntimeException(e);
+		}
+	}
+
+	static final class RemoteTableObject {
+		private final Set<String> remoteTableNames;
+
+		private RemoteTableObject(Set<String> remoteTableNames) {
+			this.remoteTableNames = ImmutableSet.copyOf(remoteTableNames);
+		}
+
+		public static RemoteTableObject of(String remoteName) {
+			return new RemoteTableObject(ImmutableSet.of(remoteName));
+		}
+
+		public RemoteTableObject registerCollision(String ambiguousName) {
+			return new RemoteTableObject(ImmutableSet.<String>builderWithExpectedSize(remoteTableNames.size() + 1)
+					.addAll(remoteTableNames).add(ambiguousName).build());
+		}
+
+		public String getAnyRemoteTableName() {
+			return Collections.min(remoteTableNames);
+		}
+
+		public String getOnlyRemoteTableName() {
+			if (!isAmbiguous()) {
+				return getOnlyElement(remoteTableNames);
+			}
+
+			throw new PrestoException(OdpsErrorCode.ODPS_AMBIGUOUS_OBJECT_NAME,
+					"Found ambiguous names in Druid when looking up '" + getAnyRemoteTableName().toLowerCase(ENGLISH)
+							+ "': " + remoteTableNames);
+		}
+
+		public boolean isAmbiguous() {
+			return remoteTableNames.size() > 1;
 		}
 	}
 }

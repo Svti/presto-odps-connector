@@ -44,7 +44,7 @@ public class OdpsTable {
 			ColumnMetadata metadata = ColumnMetadata.builder().setName(column.getName())
 					.setComment(Optional.of(column.getColumnMetadata().getComment()))
 					.setProperties(column.getColumnMetadata().getProperties())
-					.setExtraInfo(Optional.of(column.getColumnMetadata().getExtraInfo())).setHidden(false)
+					.setHidden(column.getColumnMetadata().isHidden())
 					.setType(column.getType()).build();
 			columnsMetadata.add(metadata);
 		}
